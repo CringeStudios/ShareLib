@@ -5,6 +5,8 @@ import java.util.List;
 
 public class Util {
 
+	// Source for a lot of the code: https://digitalfreepen.com/2017/10/06/simple-real-time-collaborative-text-editor.html
+
 	public static final int BASE = 10;
 
 	public static int comparePositions(Identifier[] a, Identifier[] b) {
@@ -17,14 +19,17 @@ public class Util {
 	}
 
 	public static Identifier[] generatePositionBetween(Identifier[] before, Identifier[] after, int site) {
+		if(comparePositions(before, after) != -1) throw new IllegalArgumentException("before must be strictly less than after");
+
 		List<Identifier> newPosition = new ArrayList<>();
 
 		for(int i = 0; i < Math.min(before.length, after.length) + 1; i++) {
 			Identifier c1 = i >= before.length ? new Identifier(0, site) : before[i];
-			Identifier c2 = i >= after.length ? new Identifier(BASE, site) : after[i];
+			Identifier c2 = i >= after.length ? new Identifier(BASE - 1, site) : after[i];
 
 			if(c1.digit() != c2.digit()) {
-				// TODO: generate delta, then pick a value between
+				int[] incremented = getIncremented(before, after, i);
+				return constructPosition(incremented, before, after, site);
 			}
 
 			if(c1.site() == c2.site()) {
@@ -34,7 +39,8 @@ public class Util {
 
 			if(c1.site() < c2.site()) {
 				// Anything starting with before will be sorted before after
-				newPosition.add(new Identifier(BASE, site));
+				newPosition.add(c1);
+				newPosition.add(new Identifier(1, site));
 				return newPosition.toArray(Identifier[]::new);
 			}
 
@@ -44,9 +50,9 @@ public class Util {
 		return null;
 	}
 
-	public static int[] getIncremented(Identifier[] i1, Identifier[] i2, int offset) {
+	public static int[] getIncremented(Identifier[] before, Identifier[] after, int offset) {
 		// TODO: can potentially be optimized by just calculating the index of the first non-zero digit (e.g. don't return array and discard it -> just return the index)
-		int[] delta = subtract(i2, i1, offset);
+		int[] delta = subtract(after, before, offset);
 		int firstNonZero = 0;
 		for(int i = 0; i < delta.length; i++) {
 			if(delta[i] != 0) {
@@ -57,14 +63,36 @@ public class Util {
 
 		// Because of math, (firstNonZero + 1) >= i1.length (I think)
 		// then make the array 1 longer so we have space for the increment (which is one order of magnitude smaller)
-		int[] incremented = new int[firstNonZero + 2];
+		int[] incremented = new int[offset + firstNonZero + 2];
 		for(int i = 0; i < incremented.length; i++) {
-			incremented[i] = i <= i1.length ? i1[i].digit() : 0;
+			incremented[i] = i < before.length ? before[i].digit() : 0;
 		}
 
-		add1AtIndex(incremented, firstNonZero + 1); // last digit might be zero, which is ambigious, inc again
-		if(incremented[incremented.length - 1] == 0) add1AtIndex(incremented, firstNonZero + 1);
+		add1AtIndex(incremented, offset + firstNonZero + 1); // last digit might be zero, which is ambigious, inc again
+		if(incremented[incremented.length - 1] == 0) add1AtIndex(incremented, offset + firstNonZero + 1);
 		return incremented;
+	}
+
+	public static Identifier[] constructPosition(int[] num, Identifier[] before, Identifier[] after, int site) {
+		// Implements rules according to constructPosition from https://inria.hal.science/inria-00432368/document
+
+		Identifier[] ident = new Identifier[num.length];
+
+		for(int i = 0; i < num.length; i++) {
+			int digit = num[i];
+
+			if(i == num.length - 1) {
+				ident[i] = new Identifier(digit, site);
+			}else if(i < before.length && digit == before[i].digit()) {
+				ident[i] = before[i];
+			}else if(i < after.length && digit == after[i].digit()) {
+				ident[i] = after[i];
+			}else {
+				ident[i] = new Identifier(digit, site);
+			}
+		}
+
+		return ident;
 	}
 
 	/**
