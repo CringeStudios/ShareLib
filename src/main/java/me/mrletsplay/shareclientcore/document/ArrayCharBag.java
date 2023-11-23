@@ -27,6 +27,16 @@ public class ArrayCharBag implements CharBag {
 	}
 
 	@Override
+	public Char get(int index) {
+		return chars.get(index);
+	}
+
+	@Override
+	public int size() {
+		return chars.size();
+	}
+
+	@Override
 	public String toString() {
 		return chars.stream()
 				.map(c -> c.value())

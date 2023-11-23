@@ -47,7 +47,7 @@ public class Util {
 			throw new RuntimeException("Invalid site order");
 		}
 
-		return null;
+		return newPosition.toArray(Identifier[]::new);
 	}
 
 	public static int[] getIncremented(Identifier[] before, Identifier[] after, int offset) {

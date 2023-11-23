@@ -20,4 +20,24 @@ public interface CharBag {
 	 */
 	public int remove(Char character);
 
+	/**
+	 * Finds the character at the given index and returns it
+	 * @param index The index of the character
+	 * @return The character
+	 */
+	public Char get(int index);
+
+	/**
+	 * Returns the number of chars in this bag
+	 * @return The number of chars
+	 */
+	public int size();
+
+	/**
+	 * Collects the chars in this bag ordered by their position into a string
+	 * @return A string containing the chars
+	 */
+	@Override
+	public String toString();
+
 }
