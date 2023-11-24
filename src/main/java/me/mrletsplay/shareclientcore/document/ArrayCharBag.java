@@ -12,6 +12,7 @@ public class ArrayCharBag implements CharBag {
 		int i = 0;
 		// TODO: use binary search
 		while(i < chars.size() && Util.comparePositions(chars.get(i).position(), character.position()) < 0) i++;
+		if(i < chars.size() && Util.comparePositions(chars.get(i).position(), character.position()) == 0) return -1;
 		chars.add(i, character);
 		return i;
 	}

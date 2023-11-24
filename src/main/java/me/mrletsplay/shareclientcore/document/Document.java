@@ -48,6 +48,26 @@ public class Document {
 		}
 	}
 
+	/**
+	 * Inserts a remote change into the document and updates internal parameters accordingly
+	 * @param c The character to insert
+	 * @return The index of the inserted character, or -1 if it was not inserted because it already exists
+	 */
+	public int remoteInsert(Char c) {
+		lamport = Math.max(c.lamport(), lamport) + 1;
+		return charBag.add(c);
+	}
+
+	/**
+	 * Removes a character from the document and updates internal parameters accordingly
+	 * @param c The character to delete
+	 * @return The index the character was located at, or -1 if it was not contained in the document
+	 */
+	public int remoteDelete(Char c) {
+		lamport = Math.max(c.lamport(), lamport) + 1;
+		return charBag.remove(c);
+	}
+
 	public CharBag getCharBag() {
 		return charBag;
 	}

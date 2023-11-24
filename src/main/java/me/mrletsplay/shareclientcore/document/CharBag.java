@@ -2,12 +2,8 @@ package me.mrletsplay.shareclientcore.document;
 
 public interface CharBag {
 
-//	public Character find(PositionIdentifier position);
-//	public Character findBefore(PositionIdentifier position);
-//	public Character findAfter(PositionIdentifier position);
-
 	/**
-	 * Adds a character to the bag and returns the index it was inserted at
+	 * Adds a character to the bag and returns the index it was inserted at, or -1 if it was not inserted because it already exists
 	 * @param character The character to add
 	 * @return The index it was inserted at
 	 */
