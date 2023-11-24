@@ -14,6 +14,11 @@ public class Document {
 		this.site = site;
 	}
 
+	/**
+	 * Inserts characters into the document at the specified index
+	 * @param index The index to insert at
+	 * @param str The string to insert
+	 */
 	public void localInsert(int index, String str) {
 		if(index < 0 || index >= charBag.size() - 1) throw new IllegalArgumentException("Index out of bounds");
 
@@ -26,6 +31,20 @@ public class Document {
 			Char ch = new Char(newPos, lamport, c);
 			charBag.add(ch);
 			charBefore = ch;
+		}
+	}
+
+	/**
+	 * Deletes n characters from a document, starting at the specified index
+	 * @param index The index to start deleting at
+	 * @param n The number of characters to delete
+	 */
+	public void localDelete(int index, int n) {
+		if(index < 0 || index + n >= charBag.size() - 1) throw new IllegalArgumentException("Index out of bounds");
+
+		while(n-- > 0) {
+			// TODO: more efficient implementation (e.g. range delete in CharBag)
+			charBag.remove(charBag.get(index + 1));
 		}
 	}
 
