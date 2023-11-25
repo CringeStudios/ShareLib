@@ -1,17 +1,34 @@
 package me.mrletsplay.shareclientcore.document;
 
-public class Document {
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+import me.mrletsplay.shareclientcore.connection.Change;
+import me.mrletsplay.shareclientcore.connection.ChangeType;
+import me.mrletsplay.shareclientcore.connection.RemoteConnection;
+import me.mrletsplay.shareclientcore.connection.RemoteListener;
+
+public class SharedDocument implements RemoteListener {
+
+	private RemoteConnection connection;
 	private CharBag charBag;
+	private int document;
 	private int site;
 	private int lamport;
+	private Set<DocumentListener> listeners;
 
-	public Document(int site) {
+	public SharedDocument(RemoteConnection connection) {
+		this.connection = connection;
+		connection.addListener(this);
+
 		this.charBag = new ArrayCharBag();
 		charBag.add(Char.START_OF_DOCUMENT);
 		charBag.add(Char.END_OF_DOCUMENT);
 
-		this.site = site;
+		this.document = 0; // TODO: implement
+		this.site = connection.retrieveSiteID();
+		this.listeners = new HashSet<>();
 	}
 
 	/**
@@ -25,13 +42,18 @@ public class Document {
 		Char charBefore = charBag.get(index);
 		Char charAfter = charBag.get(index +1);
 
-		for(char c : str.toCharArray()) {
+		char[] chars = str.toCharArray();
+		Change[] changes = new Change[chars.length];
+		for(int i = 0; i < chars.length; i++) {
 			Identifier[] newPos = Util.generatePositionBetween(charBefore.position(), charAfter.position(), site);
 			lamport++;
-			Char ch = new Char(newPos, lamport, c);
+			Char ch = new Char(newPos, lamport, chars[i]);
 			charBag.add(ch);
+			changes[i] = new Change(document, ChangeType.ADD, ch);
 			charBefore = ch;
 		}
+
+		connection.send(changes);
 	}
 
 	/**
@@ -41,11 +63,17 @@ public class Document {
 	 */
 	public void localDelete(int index, int n) {
 		if(index < 0 || index + n >= charBag.size() - 1) throw new IllegalArgumentException("Index out of bounds");
+		if(n == 0) return;
 
+		Change[] changes = new Change[n];
 		while(n-- > 0) {
 			// TODO: more efficient implementation (e.g. range delete in CharBag)
-			charBag.remove(charBag.get(index + 1));
+			Char toRemove = charBag.get(index + 1);
+			changes[n] = new Change(document, ChangeType.REMOVE, toRemove);
+			charBag.remove(toRemove);
 		}
+
+		connection.send(changes);
 	}
 
 	/**
@@ -55,7 +83,10 @@ public class Document {
 	 */
 	public int remoteInsert(Char c) {
 		lamport = Math.max(c.lamport(), lamport) + 1;
-		return charBag.add(c);
+		int index = charBag.add(c);
+		if(index == -1) return -1;
+		listeners.forEach(l -> l.onInsert(index - 1, c.value()));
+		return index;
 	}
 
 	/**
@@ -65,7 +96,10 @@ public class Document {
 	 */
 	public int remoteDelete(Char c) {
 		lamport = Math.max(c.lamport(), lamport) + 1;
-		return charBag.remove(c);
+		int index = charBag.remove(c);
+		if(index == -1) return -1;
+		listeners.forEach(l -> l.onDelete(index - 1));
+		return index;
 	}
 
 	public CharBag getCharBag() {
@@ -75,6 +109,25 @@ public class Document {
 	public String getContents() {
 		String contents = charBag.toString();
 		return contents.substring(1, contents.length() - 1);
+	}
+
+	public void addListener(DocumentListener listener) {
+		listeners.add(listener);
+	}
+
+	public void removeListener(DocumentListener listener) {
+		listeners.add(listener);
+	}
+
+	@Override
+	public void onRemoteChange(Change... changes) {
+		for(Change c : changes) {
+			System.out.println("Change: " + c + " | " + Arrays.toString(c.character().position()));
+			switch(c.type()) {
+				case ADD -> remoteInsert(c.character());
+				case REMOVE -> remoteDelete(c.character());
+			}
+		}
 	}
 
 }
