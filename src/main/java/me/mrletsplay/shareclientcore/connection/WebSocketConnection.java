@@ -1,107 +1,84 @@
 package me.mrletsplay.shareclientcore.connection;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import me.mrletsplay.shareclientcore.document.Char;
-import me.mrletsplay.shareclientcore.document.Identifier;
+import me.mrletsplay.shareclientcore.connection.message.ClientHelloMessage;
+import me.mrletsplay.shareclientcore.connection.message.Message;
+import me.mrletsplay.shareclientcore.connection.message.ServerHelloMessage;
 
 public class WebSocketConnection implements RemoteConnection {
 
 	private WSClient client;
-	private Set<RemoteListener> listeners;
+	private String username;
+	private Set<MessageListener> listeners;
+	private int siteID;
 
-	public WebSocketConnection(URI uri, Map<String, String> httpHeaders) {
+	private Object wait = new Object();
+	private boolean helloReceived;
+	private ConnectionException connectException;
+
+	public WebSocketConnection(URI uri, String username, Map<String, String> httpHeaders) {
 		this.client = new WSClient(uri, httpHeaders);
+		this.username = username;
 		this.listeners = new HashSet<>();
 	}
 
-	public WebSocketConnection(URI uri) {
-		this(uri, null);
+	public WebSocketConnection(URI uri, String username) {
+		this(uri, username, null);
 	}
 
 	@Override
-	public void connect() throws IOException, InterruptedException {
-		if(!client.connectBlocking()) throw new IOException("Failed to connect to WebSocket server");
-	}
-
-	@Override
-	public int retrieveSiteID() {
-		// TODO: implement
-		return new Random().nextInt();
-	}
-
-	@Override
-	public void send(Change... changes) {
-		for(Change c : changes) {
-			client.send(serialize(c));
+	public void connect(String sessionID) throws ConnectionException {
+		try {
+			if(!client.connectBlocking(30, TimeUnit.SECONDS)) throw new IOException("Failed to connect to WebSocket server");
+			send(new ClientHelloMessage(username, sessionID));
+			wait.wait(30_000L);
+			if(!helloReceived) throw new ConnectionException("Server did not send hello");
+			if(connectException != null) throw connectException;
+		} catch (InterruptedException | IOException e) {
+			throw new ConnectionException("Failed to establish connection", e);
 		}
 	}
 
 	@Override
-	public void addListener(RemoteListener listener) {
+	public int getSiteID() {
+		return siteID;
+	}
+
+	@Override
+	public void send(Message message) throws ConnectionException {
+		ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+		DataOutputStream dOut = new DataOutputStream(bOut);
+
+		try {
+			dOut.writeUTF(message.getType().name());
+			message.serialize(dOut);
+		} catch (IOException e) {
+			throw new ConnectionException("Failed to serialize message", e);
+		}
+
+		client.send(bOut.toByteArray());
+	}
+
+	@Override
+	public void addListener(MessageListener listener) {
 		listeners.add(listener);
 	}
 
 	@Override
-	public void removeListener(RemoteListener listener) {
+	public void removeListener(MessageListener listener) {
 		listeners.remove(listener);
-	}
-
-	private byte[] serialize(Change change) {
-		try {
-			ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-			DataOutputStream dOut = new DataOutputStream(bOut);
-			dOut.writeInt(change.document());
-			dOut.writeUTF(change.type().name());
-
-			Char ch = change.character();
-			dOut.writeInt(ch.position().length);
-			for(int i = 0; i < ch.position().length; i++) {
-				Identifier id = ch.position()[i];
-				dOut.writeInt(id.digit());
-				dOut.writeInt(id.site());
-			}
-
-			dOut.writeInt(ch.lamport());
-			dOut.writeChar(ch.value());
-			return bOut.toByteArray();
-		}catch(IOException e) {
-			throw new RuntimeException("Something went very wrong", e);
-		}
-	}
-
-	private Change deserialize(byte[] bytes) {
-		try {
-			DataInputStream dIn = new DataInputStream(new ByteArrayInputStream(bytes));
-			int document = dIn.readInt();
-			ChangeType type = ChangeType.valueOf(dIn.readUTF());
-
-			Identifier[] pos = new Identifier[dIn.readInt()];
-			for(int i = 0; i < pos.length; i++) {
-				pos[i] = new Identifier(dIn.readInt(), dIn.readInt());
-			}
-
-			int lamport = dIn.readInt();
-			char value = dIn.readChar();
-			return new Change(document, type, new Char(pos, lamport, value));
-		}catch(IllegalArgumentException e) {
-			throw new IllegalArgumentException("Failed to deserialize change", e);
-		}catch(IOException e) {
-			throw new RuntimeException("Something went very wrong", e);
-		}
 	}
 
 	private class WSClient extends WebSocketClient {
@@ -116,7 +93,7 @@ public class WebSocketConnection implements RemoteConnection {
 
 		@Override
 		public void onOpen(ServerHandshake handshakedata) {
-			// TODO: request site id
+
 		}
 
 		@Override
@@ -126,9 +103,28 @@ public class WebSocketConnection implements RemoteConnection {
 
 		@Override
 		public void onMessage(ByteBuffer bytes) {
-			byte[] bytesArray = new byte[bytes.remaining()];
-			bytes.get(bytesArray);
-			listeners.forEach(l -> l.onRemoteChange(deserialize(bytesArray)));
+			Message m;
+			try {
+				m = Message.deserialize(bytes);
+			}catch(IOException e) {
+				e.printStackTrace(); // TODO: custom logging (e.g. via error callback)
+				return;
+			}
+
+			if(m instanceof ServerHelloMessage hello) {
+				helloReceived = true;
+				siteID = hello.siteID();
+
+				if(hello.protocolVersion() != PROTOCOL_VERSION) {
+					connectException = new ConnectionException(String.format("Protocol version mismatch: (Server has %s, Client has %s)", hello.protocolVersion(), PROTOCOL_VERSION));
+					close();
+				}
+
+				wait.notifyAll();
+				return;
+			}
+
+			listeners.forEach(l -> l.onMessage(m));
 		}
 
 		@Override

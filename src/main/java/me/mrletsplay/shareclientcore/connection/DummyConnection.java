@@ -1,31 +1,31 @@
 package me.mrletsplay.shareclientcore.connection;
 
-import java.io.IOException;
+import me.mrletsplay.shareclientcore.connection.message.Message;
 
 public class DummyConnection implements RemoteConnection {
 
 	@Override
-	public void connect() throws IOException, InterruptedException {
+	public void connect(String sessionID) throws ConnectionException {
 
 	}
 
 	@Override
-	public int retrieveSiteID() {
+	public int getSiteID() {
 		return 0;
 	}
 
 	@Override
-	public void send(Change... changes) {
+	public void send(Message message) {
 
 	}
 
 	@Override
-	public void addListener(RemoteListener listener) {
+	public void addListener(MessageListener listener) {
 
 	}
 
 	@Override
-	public void removeListener(RemoteListener listener) {
+	public void removeListener(MessageListener listener) {
 
 	}
 

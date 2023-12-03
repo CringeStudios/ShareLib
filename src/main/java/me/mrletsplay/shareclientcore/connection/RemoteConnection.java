@@ -1,20 +1,22 @@
 package me.mrletsplay.shareclientcore.connection;
 
-import java.io.IOException;
+import me.mrletsplay.shareclientcore.connection.message.Message;
 
 /**
  * Represents a connection to a remote user or server
  */
 public interface RemoteConnection {
 
-	public void connect() throws IOException, InterruptedException;
+	public static final int PROTOCOL_VERSION = 1;
 
-	public int retrieveSiteID();
+	public void connect(String sessionID) throws ConnectionException;
 
-	public void send(Change... changes);
+	public int getSiteID();
 
-	public void addListener(RemoteListener listener);
+	public void send(Message message) throws ConnectionException;
 
-	public void removeListener(RemoteListener listener);
+	public void addListener(MessageListener listener);
+
+	public void removeListener(MessageListener listener);
 
 }

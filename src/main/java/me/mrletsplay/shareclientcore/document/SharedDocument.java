@@ -6,10 +6,13 @@ import java.util.Set;
 
 import me.mrletsplay.shareclientcore.connection.Change;
 import me.mrletsplay.shareclientcore.connection.ChangeType;
+import me.mrletsplay.shareclientcore.connection.ConnectionException;
+import me.mrletsplay.shareclientcore.connection.MessageListener;
 import me.mrletsplay.shareclientcore.connection.RemoteConnection;
-import me.mrletsplay.shareclientcore.connection.RemoteListener;
+import me.mrletsplay.shareclientcore.connection.message.ChangeMessage;
+import me.mrletsplay.shareclientcore.connection.message.Message;
 
-public class SharedDocument implements RemoteListener {
+public class SharedDocument implements MessageListener {
 
 	private RemoteConnection connection;
 	private CharBag charBag;
@@ -27,7 +30,7 @@ public class SharedDocument implements RemoteListener {
 		charBag.add(Char.END_OF_DOCUMENT);
 
 		this.document = 0; // TODO: implement
-		this.site = connection.retrieveSiteID();
+		this.site = connection.getSiteID();
 		this.listeners = new HashSet<>();
 	}
 
@@ -53,7 +56,13 @@ public class SharedDocument implements RemoteListener {
 			charBefore = ch;
 		}
 
-		connection.send(changes);
+		for(Change c : changes) {
+			try {
+				connection.send(new ChangeMessage(c));
+			} catch (ConnectionException e) {
+				e.printStackTrace(); // TODO: throw error
+			}
+		}
 	}
 
 	/**
@@ -73,7 +82,14 @@ public class SharedDocument implements RemoteListener {
 			charBag.remove(toRemove);
 		}
 
-		connection.send(changes);
+
+		for(Change c : changes) {
+			try {
+				connection.send(new ChangeMessage(c));
+			} catch (ConnectionException e) {
+				e.printStackTrace(); // TODO: throw error
+			}
+		}
 	}
 
 	/**
@@ -120,8 +136,9 @@ public class SharedDocument implements RemoteListener {
 	}
 
 	@Override
-	public void onRemoteChange(Change... changes) {
-		for(Change c : changes) {
+	public void onMessage(Message message) {
+		if(message instanceof ChangeMessage change) {
+			Change c = change.change();
 			System.out.println("Change: " + c + " | " + Arrays.toString(c.character().position()));
 			switch(c.type()) {
 				case ADD -> remoteInsert(c.character());
