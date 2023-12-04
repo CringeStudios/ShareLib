@@ -17,14 +17,14 @@ public record ChangeMessage(Change change) implements Message {
 
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeInt(change.document());
+		out.writeUTF(change.documentPath());
 		out.writeUTF(change.type().name());
 		change.character().serialize(out);
 	}
 
 	public static ChangeMessage deserialize(DataInputStream in) throws IOException {
 		try {
-			return new ChangeMessage(new Change(in.readInt(), ChangeType.valueOf(in.readUTF()), Char.deserialize(in)));
+			return new ChangeMessage(new Change(in.readUTF(), ChangeType.valueOf(in.readUTF()), Char.deserialize(in)));
 		}catch(IllegalArgumentException e) {
 			throw new IOException("Invalid change type", e);
 		}

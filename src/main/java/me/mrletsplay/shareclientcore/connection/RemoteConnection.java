@@ -11,6 +11,8 @@ public interface RemoteConnection {
 
 	public void connect(String sessionID) throws ConnectionException;
 
+	public void disconnect();
+
 	public int getSiteID();
 
 	public void send(Message message) throws ConnectionException;

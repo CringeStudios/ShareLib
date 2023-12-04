@@ -10,6 +10,11 @@ public class DummyConnection implements RemoteConnection {
 	}
 
 	@Override
+	public void disconnect() {
+
+	}
+
+	@Override
 	public int getSiteID() {
 		return 0;
 	}

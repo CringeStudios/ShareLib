@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
 import me.mrletsplay.shareclientcore.connection.message.ClientHelloMessage;
@@ -43,12 +44,20 @@ public class WebSocketConnection implements RemoteConnection {
 		try {
 			if(!client.connectBlocking(30, TimeUnit.SECONDS)) throw new IOException("Failed to connect to WebSocket server");
 			send(new ClientHelloMessage(username, sessionID));
-			wait.wait(30_000L);
-			if(!helloReceived) throw new ConnectionException("Server did not send hello");
+			synchronized(wait) { wait.wait(30_000L); }
+			if(!helloReceived) {
+				client.close();
+				throw new ConnectionException("Server did not send hello");
+			}
 			if(connectException != null) throw connectException;
 		} catch (InterruptedException | IOException e) {
 			throw new ConnectionException("Failed to establish connection", e);
 		}
+	}
+
+	@Override
+	public void disconnect() {
+		client.close(CloseFrame.NORMAL);
 	}
 
 	@Override
@@ -120,7 +129,7 @@ public class WebSocketConnection implements RemoteConnection {
 					close();
 				}
 
-				wait.notifyAll();
+				synchronized(wait) { wait.notifyAll(); }
 				return;
 			}
 

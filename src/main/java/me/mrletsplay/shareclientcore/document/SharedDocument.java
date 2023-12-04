@@ -16,12 +16,12 @@ public class SharedDocument implements MessageListener {
 
 	private RemoteConnection connection;
 	private CharBag charBag;
-	private int document;
+	private String path;
 	private int site;
 	private int lamport;
 	private Set<DocumentListener> listeners;
 
-	public SharedDocument(RemoteConnection connection) {
+	public SharedDocument(RemoteConnection connection, String path) {
 		this.connection = connection;
 		connection.addListener(this);
 
@@ -29,7 +29,7 @@ public class SharedDocument implements MessageListener {
 		charBag.add(Char.START_OF_DOCUMENT);
 		charBag.add(Char.END_OF_DOCUMENT);
 
-		this.document = 0; // TODO: implement
+		this.path = path;
 		this.site = connection.getSiteID();
 		this.listeners = new HashSet<>();
 	}
@@ -52,7 +52,7 @@ public class SharedDocument implements MessageListener {
 			lamport++;
 			Char ch = new Char(newPos, lamport, chars[i]);
 			charBag.add(ch);
-			changes[i] = new Change(document, ChangeType.ADD, ch);
+			changes[i] = new Change(path, ChangeType.ADD, ch);
 			charBefore = ch;
 		}
 
@@ -78,7 +78,7 @@ public class SharedDocument implements MessageListener {
 		while(n-- > 0) {
 			// TODO: more efficient implementation (e.g. range delete in CharBag)
 			Char toRemove = charBag.get(index + 1);
-			changes[n] = new Change(document, ChangeType.REMOVE, toRemove);
+			changes[n] = new Change(path, ChangeType.REMOVE, toRemove);
 			charBag.remove(toRemove);
 		}
 
@@ -139,6 +139,8 @@ public class SharedDocument implements MessageListener {
 	public void onMessage(Message message) {
 		if(message instanceof ChangeMessage change) {
 			Change c = change.change();
+			if(!c.documentPath().equals(path)) return;
+
 			System.out.println("Change: " + c + " | " + Arrays.toString(c.character().position()));
 			switch(c.type()) {
 				case ADD -> remoteInsert(c.character());
