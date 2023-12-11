@@ -26,6 +26,10 @@ public interface Message extends SerializableObject {
 				case PEER_JOIN -> m = PeerJoinMessage.deserialize(dIn);
 				case PEER_LEAVE -> m = PeerLeaveMessage.deserialize(dIn);
 				case CHANGE -> m = ChangeMessage.deserialize(dIn);
+				case REQUEST_FULL_SYNC -> m = RequestFullSyncMessage.deserialize(dIn);
+				case REQUEST_CHECKSUM -> m = RequestChecksumMessage.deserialize(dIn);
+				case FULL_SYNC -> m = FullSyncMessage.deserialize(dIn);
+				case CHECKSUM -> m = ChecksumMessage.deserialize(dIn);
 				default -> m = new BasicMessage(type);
 			}
 
