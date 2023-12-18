@@ -124,6 +124,15 @@ public class DecimalTest {
 	}
 
 	@Test
+	public void testGeneratePosition_3() {
+		Identifier[] a = { new Identifier(1, 0) };
+		Identifier[] b = { new Identifier(1, 0), new Identifier(0, 0), new Identifier(1, 0) };
+		Identifier[] newIdent = Util.generatePositionBetween(a, b, 0);
+		Identifier[] expected = { new Identifier(1, 0), new Identifier(0, 0), new Identifier(0, 0), new Identifier(1, 0) };
+		assertArrayEquals(expected, newIdent);
+	}
+
+	@Test
 	public void testGeneratePositionInvalidInputFails() {
 		Identifier[] a = { new Identifier(1, 0), new Identifier(2, 2) };
 		Identifier[] b = { new Identifier(1, 0), new Identifier(2, 1) };

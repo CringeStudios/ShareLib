@@ -21,25 +21,27 @@ public class SharedDocument implements MessageListener {
 	private int lamport;
 	private Set<DocumentListener> listeners;
 
-	public SharedDocument(RemoteConnection connection, String path) {
+	public SharedDocument(RemoteConnection connection, String path, String initialContents) {
 		this.connection = connection;
-		connection.addListener(this);
-
 		this.charBag = new ArrayCharBag();
-		charBag.add(Char.START_OF_DOCUMENT);
-		charBag.add(Char.END_OF_DOCUMENT);
-
 		this.path = path;
 		this.site = connection.getSiteID();
 		this.listeners = new HashSet<>();
+
+		connection.addListener(this);
+
+		charBag.add(Char.START_OF_DOCUMENT);
+		charBag.add(Char.END_OF_DOCUMENT);
+		if(initialContents != null && !initialContents.isEmpty()) {
+			insert(0, initialContents, Identifier.DEFAULT_SITE);
+		}
 	}
 
-	/**
-	 * Inserts characters into the document at the specified index
-	 * @param index The index to insert at
-	 * @param str The string to insert
-	 */
-	public void localInsert(int index, String str) {
+	public SharedDocument(RemoteConnection connection, String path) {
+		this(connection, path, null);
+	}
+
+	private Change[] insert(int index, String str, int site) {
 		if(index < 0 || index >= charBag.size() - 1) throw new IllegalArgumentException("Index out of bounds");
 
 		Char charBefore = charBag.get(index);
@@ -55,6 +57,17 @@ public class SharedDocument implements MessageListener {
 			changes[i] = new Change(path, ChangeType.ADD, ch);
 			charBefore = ch;
 		}
+
+		return changes;
+	}
+
+	/**
+	 * Inserts characters into the document at the specified index
+	 * @param index The index to insert at
+	 * @param str The string to insert
+	 */
+	public void localInsert(int index, String str) {
+		Change[] changes = insert(index, str, site);
 
 		for(Change c : changes) {
 			try {

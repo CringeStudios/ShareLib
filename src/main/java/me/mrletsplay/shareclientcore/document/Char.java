@@ -10,8 +10,8 @@ import me.mrletsplay.shareclientcore.connection.SerializableObject;
 
 public record Char(Identifier[] position, int lamport, char value) implements SerializableObject {
 
-	public static final Char START_OF_DOCUMENT = new Char(new Identifier[] { new Identifier(1, 0) }, 0, '^');
-	public static final Char END_OF_DOCUMENT = new Char(new Identifier[] { new Identifier(Util.BASE - 1, 0) }, 0, '$');
+	public static final Char START_OF_DOCUMENT = new Char(new Identifier[] { new Identifier(1, Identifier.DEFAULT_SITE) }, 0, '^');
+	public static final Char END_OF_DOCUMENT = new Char(new Identifier[] { new Identifier(Util.BASE - 1, Identifier.DEFAULT_SITE) }, 0, '$');
 
 	@Override
 	public int hashCode() {

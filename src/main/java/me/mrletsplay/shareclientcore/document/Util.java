@@ -23,7 +23,7 @@ public class Util {
 
 		List<Identifier> newPosition = new ArrayList<>();
 
-		for(int i = 0; i < Math.min(before.length, after.length) + 1; i++) {
+		for(int i = 0; i < Math.max(before.length, after.length) + 1; i++) {
 			Identifier c1 = i >= before.length ? new Identifier(0, site) : before[i];
 			Identifier c2 = i >= after.length ? new Identifier(BASE - 1, site) : after[i];
 
