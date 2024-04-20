@@ -57,4 +57,9 @@ public record Char(Identifier[] position, int lamport, char value) implements Se
 		return new Char(pos, lamport, value);
 	}
 
+	@Override
+	public String toString() {
+		return "Char [position=" + Arrays.toString(position) + ", lamport=" + lamport + ", value=" + value + "]";
+	}
+
 }

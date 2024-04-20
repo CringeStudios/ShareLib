@@ -21,4 +21,6 @@ public interface RemoteConnection {
 
 	public void removeListener(MessageListener listener);
 
+	public void setDisconnectListener(DisconnectListener listener);
+
 }

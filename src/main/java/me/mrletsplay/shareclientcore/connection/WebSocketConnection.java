@@ -23,6 +23,7 @@ public class WebSocketConnection implements RemoteConnection {
 	private WSClient client;
 	private String username;
 	private Set<MessageListener> listeners;
+	private DisconnectListener disconnectListener;
 	private int siteID;
 
 	private Object wait = new Object();
@@ -90,6 +91,11 @@ public class WebSocketConnection implements RemoteConnection {
 		listeners.remove(listener);
 	}
 
+	@Override
+	public void setDisconnectListener(DisconnectListener listener) {
+		this.disconnectListener = listener;
+	}
+
 	private class WSClient extends WebSocketClient {
 
 		public WSClient(URI serverUri) {
@@ -138,7 +144,7 @@ public class WebSocketConnection implements RemoteConnection {
 
 		@Override
 		public void onClose(int code, String reason, boolean remote) {
-			// TODO: handle
+			if(disconnectListener != null) disconnectListener.onDisconnect("WebSocket disconnected (" + code + "): " + reason, remote);
 		}
 
 		@Override

@@ -34,4 +34,9 @@ public class DummyConnection implements RemoteConnection {
 
 	}
 
+	@Override
+	public void setDisconnectListener(DisconnectListener listener) {
+
+	}
+
 }
