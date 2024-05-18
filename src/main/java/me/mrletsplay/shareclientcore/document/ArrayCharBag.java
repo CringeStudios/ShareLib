@@ -5,7 +5,15 @@ import java.util.List;
 
 public class ArrayCharBag implements CharBag {
 
-	private List<Char> chars = new ArrayList<>();
+	private List<Char> chars;
+
+	public ArrayCharBag() {
+		this.chars = new ArrayList<>();
+	}
+
+	public ArrayCharBag(List<Char> chars) {
+		this.chars = new ArrayList<>(chars);
+	}
 
 	@Override
 	public int add(Char character) {
@@ -35,6 +43,11 @@ public class ArrayCharBag implements CharBag {
 	@Override
 	public int size() {
 		return chars.size();
+	}
+
+	@Override
+	public List<Char> toList() {
+		return new ArrayList<>(chars);
 	}
 
 	@Override

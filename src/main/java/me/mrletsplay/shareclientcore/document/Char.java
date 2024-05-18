@@ -21,6 +21,7 @@ public record Char(Identifier[] position, int lamport, char value) implements Se
 		result = prime * result + Objects.hash(lamport, value);
 		return result;
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

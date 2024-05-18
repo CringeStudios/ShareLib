@@ -1,5 +1,7 @@
 package me.mrletsplay.shareclientcore.document;
 
+import java.util.List;
+
 public interface CharBag {
 
 	/**
@@ -28,6 +30,12 @@ public interface CharBag {
 	 * @return The number of chars
 	 */
 	public int size();
+
+	/**
+	 * Collects the chars in this bag ordered by their position into a list
+	 * @return
+	 */
+	public List<Char> toList();
 
 	/**
 	 * Collects the chars in this bag ordered by their position into a string

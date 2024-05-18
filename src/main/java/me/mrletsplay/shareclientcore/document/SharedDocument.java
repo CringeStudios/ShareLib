@@ -2,6 +2,7 @@ package me.mrletsplay.shareclientcore.document;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import me.mrletsplay.shareclientcore.connection.Change;
@@ -27,8 +28,6 @@ public class SharedDocument implements MessageListener {
 		this.path = path;
 		this.site = connection.getSiteID();
 		this.listeners = new HashSet<>();
-
-		connection.addListener(this);
 
 		charBag.add(Char.START_OF_DOCUMENT);
 		charBag.add(Char.END_OF_DOCUMENT);
@@ -133,6 +132,16 @@ public class SharedDocument implements MessageListener {
 
 	public CharBag getCharBag() {
 		return charBag;
+	}
+
+	/**
+	 * Collects the chars in this document ordered by their position into a list.<br>
+	 * This differs from {@link CharBag#toList()} in that this method does not include the {@link Char#START_OF_DOCUMENT} and {@link Char#END_OF_DOCUMENT} chars.
+	 * @return
+	 */
+	public List<Char> toList() {
+		List<Char> chars = charBag.toList();
+		return chars.subList(1, chars.size() - 1);
 	}
 
 	public String getContents() {

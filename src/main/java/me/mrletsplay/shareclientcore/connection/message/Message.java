@@ -30,7 +30,7 @@ public interface Message extends SerializableObject {
 				case REQUEST_CHECKSUM -> m = RequestChecksumMessage.deserialize(dIn);
 				case FULL_SYNC -> m = FullSyncMessage.deserialize(dIn);
 				case CHECKSUM -> m = ChecksumMessage.deserialize(dIn);
-				default -> m = new BasicMessage(type);
+				default -> m = new BasicMessage(type);// TODO: implement missing message types and delete BasicMessage
 			}
 
 			return m;
