@@ -1,5 +1,6 @@
 package me.mrletsplay.shareclientcore.document;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +47,7 @@ public class SharedDocument implements MessageListener {
 		Char charBefore = charBag.get(index);
 		Char charAfter = charBag.get(index +1);
 
-		char[] chars = str.toCharArray();
+		byte[] chars = str.getBytes(StandardCharsets.UTF_8);
 		Change[] changes = new Change[chars.length];
 		for(int i = 0; i < chars.length; i++) {
 			Identifier[] newPos = Util.generatePositionBetween(charBefore.position(), charAfter.position(), site);
@@ -144,8 +145,21 @@ public class SharedDocument implements MessageListener {
 		return chars.subList(1, chars.size() - 1);
 	}
 
-	public String getContents() {
-		String contents = charBag.toString();
+	/**
+	 * @return The contents of the document
+	 * @see CharBag#getContents()
+	 */
+	public byte[] getContents() {
+		byte[] contents = charBag.getContents();
+		return Arrays.copyOfRange(contents, 1, contents.length - 1);
+	}
+
+	/**
+	 * @return The contents of the document converted to a UTF-8 encoded string
+	 * @see CharBag#getContentsAsString()
+	 */
+	public String getContentsAsString() {
+		String contents = charBag.getContentsAsString();
 		return contents.substring(1, contents.length() - 1);
 	}
 

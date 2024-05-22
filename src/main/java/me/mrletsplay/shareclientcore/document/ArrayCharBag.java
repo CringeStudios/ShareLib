@@ -1,5 +1,6 @@
 package me.mrletsplay.shareclientcore.document;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,10 +52,17 @@ public class ArrayCharBag implements CharBag {
 	}
 
 	@Override
-	public String toString() {
-		return chars.stream()
-				.map(c -> c.value())
-				.reduce(new StringBuilder(), (b, s) -> b.append(s), (a, b) -> a.append(b)).toString();
+	public byte[] getContents() {
+		byte[] bytes = new byte[chars.size()];
+		for(int i = 0; i < bytes.length; i++) {
+			bytes[i] = chars.get(i).value();
+		}
+		return bytes;
+	}
+
+	@Override
+	public String getContentsAsString() {
+		return new String(getContents(), StandardCharsets.UTF_8);
 	}
 
 }

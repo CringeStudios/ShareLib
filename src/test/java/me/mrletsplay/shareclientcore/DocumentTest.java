@@ -14,11 +14,11 @@ public class DocumentTest {
 	public void testLocalInsert() {
 		SharedDocument doc = new SharedDocument(new DummyConnection(), "test");
 		doc.localInsert(0, "Hello");
-		assertEquals("Hello", doc.getContents());
+		assertEquals("Hello", doc.getContentsAsString());
 		doc.localInsert(5, " World");
-		assertEquals("Hello World", doc.getContents());
+		assertEquals("Hello World", doc.getContentsAsString());
 		doc.localInsert(5, " Test");
-		assertEquals("Hello Test World", doc.getContents());
+		assertEquals("Hello Test World", doc.getContentsAsString());
 	}
 
 	@Test
@@ -34,7 +34,7 @@ public class DocumentTest {
 		SharedDocument doc = new SharedDocument(new DummyConnection(), "test");
 		doc.localInsert(0, "Hello World!");
 		doc.localDelete(5, 6);
-		assertEquals("Hello!", doc.getContents());
+		assertEquals("Hello!", doc.getContentsAsString());
 	}
 
 	@Test

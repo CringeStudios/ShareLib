@@ -1,5 +1,6 @@
 package me.mrletsplay.shareclientcore.document;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public interface CharBag {
@@ -38,10 +39,16 @@ public interface CharBag {
 	public List<Char> toList();
 
 	/**
-	 * Collects the chars in this bag ordered by their position into a string
-	 * @return A string containing the chars
+	 * Collects the chars in this bag ordered by their position into a byte array
+	 * @return A byte array containing the contents of this bag
 	 */
-	@Override
-	public String toString();
+	public byte[] getContents();
+
+	/**
+	 * Collects the chars in this bag ordered by their position into a string using the {@link StandardCharsets#UTF_8 UTF-8} charset.<br>
+	 * Note: This will not work properly for binary contents, make sure to only call this on bags containing text!
+	 * @return A string containing the contents of this bag
+	 */
+	public String getContentsAsString();
 
 }

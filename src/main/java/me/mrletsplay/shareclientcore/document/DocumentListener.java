@@ -5,7 +5,7 @@ package me.mrletsplay.shareclientcore.document;
  */
 public interface DocumentListener {
 
-	public void onInsert(int index, char character);
+	public void onInsert(int index, byte b);
 
 	public void onDelete(int index);
 

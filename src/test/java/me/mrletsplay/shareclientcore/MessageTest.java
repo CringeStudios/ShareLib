@@ -42,7 +42,7 @@ public class MessageTest {
 
 	@Test
 	public void testChangeMessage() throws IOException {
-		Change change = new Change("Project:src/test.txt", ChangeType.ADD, new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3)}, 42, 'e'));
+		Change change = new Change("Project:src/test.txt", ChangeType.ADD, new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3)}, 42, (byte) 'e'));
 		ChangeMessage m = new ChangeMessage(change);
 		assertEquals(deserialize(serialize(m)), m, "Deserialized message must equal message");
 	}
@@ -80,8 +80,8 @@ public class MessageTest {
 	@Test
 	public void testFullSyncMessage() throws IOException {
 		List<Char> chars = Arrays.asList(
-			new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3)}, 42, 'e'),
-			new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3), new Identifier(1, 4)}, 333, 'f')
+			new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3)}, 42, (byte) 'e'),
+			new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3), new Identifier(1, 4)}, 333, (byte) 'f')
 		);
 		FullSyncMessage m = new FullSyncMessage(2, "Project:src/test.txt", chars);
 		assertEquals(deserialize(serialize(m)), m, "Deserialized message must equal message");
