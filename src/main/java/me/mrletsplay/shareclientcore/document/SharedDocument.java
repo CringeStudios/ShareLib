@@ -23,7 +23,7 @@ public class SharedDocument implements MessageListener {
 	private int lamport;
 	private Set<DocumentListener> listeners;
 
-	public SharedDocument(RemoteConnection connection, String path, String initialContents) {
+	public SharedDocument(RemoteConnection connection, String path, byte[] initialContents) {
 		this.connection = connection;
 		this.charBag = new ArrayCharBag();
 		this.path = path;
@@ -32,9 +32,13 @@ public class SharedDocument implements MessageListener {
 
 		charBag.add(Char.START_OF_DOCUMENT);
 		charBag.add(Char.END_OF_DOCUMENT);
-		if(initialContents != null && !initialContents.isEmpty()) {
+		if(initialContents != null && initialContents.length > 0) {
 			insert(0, initialContents, Identifier.DEFAULT_SITE);
 		}
+	}
+	
+	public SharedDocument(RemoteConnection connection, String path, String initialContents) {
+		this(connection, path, initialContents.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public SharedDocument(RemoteConnection connection, String path) {
