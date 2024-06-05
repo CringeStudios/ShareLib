@@ -36,33 +36,47 @@ public class SharedDocument implements MessageListener {
 			insert(0, initialContents, Identifier.DEFAULT_SITE);
 		}
 	}
-	
+
 	public SharedDocument(RemoteConnection connection, String path, String initialContents) {
-		this(connection, path, initialContents.getBytes(StandardCharsets.UTF_8));
+		this(connection, path, initialContents == null ? null : initialContents.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public SharedDocument(RemoteConnection connection, String path) {
-		this(connection, path, null);
+		this(connection, path, (byte[]) null);
 	}
 
-	private Change[] insert(int index, String str, int site) {
+	private Change[] insert(int index, byte[] bytes, int site) throws IllegalArgumentException {
 		if(index < 0 || index >= charBag.size() - 1) throw new IllegalArgumentException("Index out of bounds");
 
 		Char charBefore = charBag.get(index);
 		Char charAfter = charBag.get(index +1);
 
-		byte[] chars = str.getBytes(StandardCharsets.UTF_8);
-		Change[] changes = new Change[chars.length];
-		for(int i = 0; i < chars.length; i++) {
+		Change[] changes = new Change[bytes.length];
+		for(int i = 0; i < bytes.length; i++) {
 			Identifier[] newPos = Util.generatePositionBetween(charBefore.position(), charAfter.position(), site);
 			lamport++;
-			Char ch = new Char(newPos, lamport, chars[i]);
+			Char ch = new Char(newPos, lamport, bytes[i]);
 			charBag.add(ch);
 			changes[i] = new Change(path, ChangeType.ADD, ch);
 			charBefore = ch;
 		}
 
 		return changes;
+	}
+
+	private Change[] insert(int index, String str, int site) throws IllegalArgumentException {
+		return insert(index, str.getBytes(StandardCharsets.UTF_8), site);
+	}
+
+	/**
+	 * Removes all characters from this document.<br>
+	 * <br>
+	 * <b>Note:</b> This is not the same as calling {@link #getCharBag() getCharBag()}.{@link CharBag#clear() clear()}, because documents rely on the {@link Char#START_OF_DOCUMENT} and {@link Char#END_OF_DOCUMENT} characters to exist in the document.
+	 */
+	public void clear() {
+		charBag.clear();
+		charBag.add(Char.START_OF_DOCUMENT);
+		charBag.add(Char.END_OF_DOCUMENT);
 	}
 
 	/**

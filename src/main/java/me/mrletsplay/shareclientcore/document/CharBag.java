@@ -27,6 +27,11 @@ public interface CharBag {
 	public Char get(int index);
 
 	/**
+	 * Removes all chars from this bag
+	 */
+	public void clear();
+
+	/**
 	 * Returns the number of chars in this bag
 	 * @return The number of chars
 	 */

@@ -42,6 +42,11 @@ public class ArrayCharBag implements CharBag {
 	}
 
 	@Override
+	public void clear() {
+		chars.clear();
+	}
+
+	@Override
 	public int size() {
 		return chars.size();
 	}
