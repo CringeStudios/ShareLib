@@ -2,7 +2,7 @@ package me.mrletsplay.shareclientcore.document;
 
 public record Identifier(int digit, int site) implements Comparable<Identifier> {
 
-	public static final int DEFAULT_SITE = 0;
+	public static final int DEFAULT_SITE = -1;
 
 	@Override
 	public int compareTo(Identifier o) {
