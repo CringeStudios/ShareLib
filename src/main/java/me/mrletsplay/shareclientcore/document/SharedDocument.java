@@ -56,7 +56,7 @@ public class SharedDocument implements MessageListener {
 			Identifier[] newPos = Util.generatePositionBetween(charBefore.position(), charAfter.position(), site);
 			lamport++;
 			Char ch = new Char(newPos, lamport, bytes[i]);
-			charBag.add(ch);
+			if(charBag.add(ch) == -1) throw new IllegalStateException("Couldn't insert newly created char");
 			changes[i] = new Change(path, ChangeType.ADD, ch);
 			charBefore = ch;
 		}
@@ -110,7 +110,7 @@ public class SharedDocument implements MessageListener {
 			// TODO: more efficient implementation (e.g. range delete in CharBag)
 			Char toRemove = charBag.get(index + 1);
 			changes[n] = new Change(path, ChangeType.REMOVE, toRemove);
-			charBag.remove(toRemove);
+			if(charBag.remove(toRemove) == -1) throw new IllegalStateException("Couldn't remove existing char");
 		}
 
 
@@ -195,7 +195,6 @@ public class SharedDocument implements MessageListener {
 			Change c = change.change();
 			if(!c.documentPath().equals(path)) return;
 
-			System.out.println("Change: " + c + " | " + Arrays.toString(c.character().position()));
 			switch(c.type()) {
 				case ADD -> remoteInsert(c.character());
 				case REMOVE -> remoteDelete(c.character());

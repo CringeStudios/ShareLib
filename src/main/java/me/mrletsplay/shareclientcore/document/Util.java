@@ -1,6 +1,7 @@
 package me.mrletsplay.shareclientcore.document;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Util {
@@ -44,6 +45,10 @@ public class Util {
 				return newPosition.toArray(Identifier[]::new);
 			}
 
+			System.err.println("Got invalid state");
+			System.err.println(c1 + "/" + c2);
+			System.err.println(Arrays.toString(before));
+			System.err.println(Arrays.toString(after));
 			throw new RuntimeException("Invalid site order");
 		}
 
