@@ -35,7 +35,6 @@ public record FullSyncMessage(int siteID, String documentPath, List<Char> conten
 			List<Char> content = new ArrayList<>(contentSize);
 			for(int i = 0; i < contentSize; i++) {
 				content.add(Char.deserialize(in));
-				System.out.println(content.get(content.size() - 1));
 			}
 
 			return new FullSyncMessage(siteID, documentPath, content);

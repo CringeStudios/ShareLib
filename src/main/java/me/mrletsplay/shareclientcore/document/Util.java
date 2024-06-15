@@ -19,6 +19,12 @@ public class Util {
 		return Integer.compare(a.length, b.length);
 	}
 
+	public static int compareChars(Char a, Char b) {
+		int pos = comparePositions(a.position(), b.position());
+		if(pos != 0) return pos;
+		return Integer.compare(a.lamport(), b.lamport());
+	}
+
 	public static Identifier[] generatePositionBetween(Identifier[] before, Identifier[] after, int site) {
 		if(comparePositions(before, after) != -1) throw new IllegalArgumentException("before must be strictly less than after");
 
@@ -28,7 +34,8 @@ public class Util {
 			Identifier c1 = i >= before.length ? new Identifier(0, site) : before[i];
 			Identifier c2 = i >= after.length ? new Identifier(BASE - 1, site) : after[i];
 
-			if(c1.digit() != c2.digit()) {
+			// Modification to the original source because otherwise it can lead to cases where positions can't be generated and this seems to work
+			if(i >= before.length || c1.digit() != c2.digit()) {
 				int[] incremented = getIncremented(before, after, i);
 				return constructPosition(incremented, before, after, site);
 			}

@@ -63,40 +63,49 @@ public class SharingTest {
 		String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
 
 		Random r = new Random(0);
-		for(int i = 0; i < 1000; i++) {
+		for(int i = 0; i < 10_000; i++) {
 			switch(r.nextInt(sharedA.getContents().length == 0 ? 2 : 4)) {
 				case 0: {
 					// Insert A
 					char[] insert = new char[r.nextInt(16)];
 					for(int j = 0; j < insert.length; j++) insert[j] = chars.charAt(r.nextInt(chars.length()));
 					sharedA.localInsert(r.nextInt(sharedA.getContents().length + 1), String.valueOf(insert));
+					break;
 				}
 				case 1: {
 					// Insert B
 					char[] insert = new char[r.nextInt(16)];
 					for(int j = 0; j < insert.length; j++) insert[j] = chars.charAt(r.nextInt(chars.length()));
 					sharedB.localInsert(r.nextInt(sharedB.getContents().length + 1), String.valueOf(insert));
+					break;
 				}
 				case 2: {
 					// Delete A
 					int len = sharedA.getContents().length;
 					int idx = r.nextInt(len);
-					int n = r.nextInt(len - idx);
+					int n = r.nextInt(Math.min(16, len - idx)) + 1;
 					sharedA.localDelete(idx, n);
+					break;
 				}
 				case 3: {
 					// Delete B
 					int len = sharedB.getContents().length;
 					int idx = r.nextInt(len);
-					int n = r.nextInt(len - idx + 1);
+					int n = r.nextInt(Math.min(16, len - idx)) + 1;
 					sharedB.localDelete(idx, n);
+					break;
 				}
 			}
 
-			System.out.println("A: " + sharedA.getContentsAsString());
-			System.out.println("B: " + sharedB.getContentsAsString());
+//			System.out.println("A: " + sharedA.getContentsAsString());
+//			System.out.println("B: " + sharedB.getContentsAsString());
 			assertEquals(sharedA.getContentsAsString(), sharedB.getContentsAsString());
 		}
+	}
+
+	@Test
+	public void testSharedDocumentInterleaving() {
+		// TODO: test random interleaving of messages
 	}
 
 }

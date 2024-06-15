@@ -14,9 +14,11 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
+import me.mrletsplay.shareclientcore.connection.message.ChangeMessage;
 import me.mrletsplay.shareclientcore.connection.message.ClientHelloMessage;
 import me.mrletsplay.shareclientcore.connection.message.Message;
 import me.mrletsplay.shareclientcore.connection.message.ServerHelloMessage;
+import me.mrletsplay.shareclientcore.debug.DebugValues;
 
 public class WebSocketConnection implements RemoteConnection {
 
@@ -29,11 +31,18 @@ public class WebSocketConnection implements RemoteConnection {
 	private Object wait = new Object();
 	private boolean helloReceived;
 	private ConnectionException connectException;
+	private DebugValues debugValues;
 
 	public WebSocketConnection(URI uri, String username, Map<String, String> httpHeaders) {
 		this.client = new WSClient(uri, httpHeaders);
 		this.username = username;
 		this.listeners = new HashSet<>();
+		this.debugValues = new DebugValues(
+			DEBUG_MESSAGES_SENT,
+			DEBUG_MESSAGES_RECEIVED,
+			DEBUG_CHANGES_SENT,
+			DEBUG_CHANGES_RECEIVED
+		);
 	}
 
 	public WebSocketConnection(URI uri, String username) {
@@ -68,6 +77,9 @@ public class WebSocketConnection implements RemoteConnection {
 
 	@Override
 	public void send(Message message) throws ConnectionException {
+		debugValues.increment(DEBUG_MESSAGES_SENT);
+		if(message instanceof ChangeMessage) debugValues.increment(DEBUG_CHANGES_SENT);
+
 		ByteArrayOutputStream bOut = new ByteArrayOutputStream();
 		DataOutputStream dOut = new DataOutputStream(bOut);
 
@@ -94,6 +106,11 @@ public class WebSocketConnection implements RemoteConnection {
 	@Override
 	public void setDisconnectListener(DisconnectListener listener) {
 		this.disconnectListener = listener;
+	}
+
+	@Override
+	public DebugValues getDebugValues() {
+		return debugValues;
 	}
 
 	private class WSClient extends WebSocketClient {
@@ -125,6 +142,9 @@ public class WebSocketConnection implements RemoteConnection {
 				e.printStackTrace(); // TODO: custom logging (e.g. via error callback)
 				return;
 			}
+
+			debugValues.increment(DEBUG_MESSAGES_RECEIVED);
+			if(m instanceof ChangeMessage) debugValues.increment(DEBUG_CHANGES_RECEIVED);
 
 			if(m instanceof ServerHelloMessage hello) {
 				helloReceived = true;

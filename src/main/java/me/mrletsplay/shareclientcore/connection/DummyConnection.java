@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import me.mrletsplay.shareclientcore.connection.message.Message;
+import me.mrletsplay.shareclientcore.debug.DebugValues;
 
 public class DummyConnection implements RemoteConnection {
 
@@ -65,6 +66,11 @@ public class DummyConnection implements RemoteConnection {
 	@Override
 	public void setDisconnectListener(DisconnectListener listener) {
 
+	}
+
+	@Override
+	public DebugValues getDebugValues() {
+		return null;
 	}
 
 }

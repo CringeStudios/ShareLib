@@ -2,27 +2,42 @@ package me.mrletsplay.shareclientcore.document;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import me.mrletsplay.shareclientcore.debug.DebugValues;
 
 public class ArrayCharBag implements CharBag {
 
 	private List<Char> chars;
 
-	public ArrayCharBag() {
-		this.chars = new ArrayList<>();
-	}
+	private DebugValues debugValues;
 
 	public ArrayCharBag(List<Char> chars) {
 		this.chars = new ArrayList<>(chars);
+		this.debugValues = new DebugValues(
+			DEBUG_INSERTIONS,
+			DEBUG_INSERTIONS_DROPPED,
+			DEBUG_DELETIONS,
+			DEBUG_DELETIONS_DROPPED
+		);
+	}
+
+	public ArrayCharBag() {
+		this(Collections.emptyList());
 	}
 
 	@Override
 	public int add(Char character) {
 		int i = 0;
 		// TODO: use binary search
-		while(i < chars.size() && Util.comparePositions(chars.get(i).position(), character.position()) < 0) i++;
-		if(i < chars.size() && Util.comparePositions(chars.get(i).position(), character.position()) == 0) return -1;
+		while(i < chars.size() && Util.compareChars(chars.get(i), character) < 0) i++;
+		if(i < chars.size() && Util.compareChars(chars.get(i), character) == 0) {
+			debugValues.increment(DEBUG_INSERTIONS_DROPPED);
+			return -1;
+		}
 		chars.add(i, character);
+		debugValues.increment(DEBUG_INSERTIONS);
 		return i;
 	}
 
@@ -30,9 +45,13 @@ public class ArrayCharBag implements CharBag {
 	public int remove(Char character) {
 		int i = 0;
 		// TODO: use binary search
-		while(i < chars.size() && Util.comparePositions(chars.get(i).position(), character.position()) < 0) i++;
-		if(i == chars.size() || Util.comparePositions(chars.get(i).position(), character.position()) != 0) return -1;
+		while(i < chars.size() && Util.compareChars(chars.get(i), character) < 0) i++;
+		if(i == chars.size() || Util.compareChars(chars.get(i), character) != 0) {
+			debugValues.increment(DEBUG_DELETIONS_DROPPED);
+			return -1;
+		}
 		chars.remove(i);
+		debugValues.increment(DEBUG_DELETIONS);
 		return i;
 	}
 
@@ -68,6 +87,11 @@ public class ArrayCharBag implements CharBag {
 	@Override
 	public String getContentsAsString() {
 		return new String(getContents(), StandardCharsets.UTF_8);
+	}
+
+	@Override
+	public DebugValues getDebugValues() {
+		return debugValues;
 	}
 
 }

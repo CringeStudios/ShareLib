@@ -49,7 +49,7 @@ public class SharedDocument implements MessageListener {
 		if(index < 0 || index >= charBag.size() - 1) throw new IllegalArgumentException("Index out of bounds");
 
 		Char charBefore = charBag.get(index);
-		Char charAfter = charBag.get(index +1);
+		Char charAfter = charBag.get(index + 1);
 
 		Change[] changes = new Change[bytes.length];
 		for(int i = 0; i < bytes.length; i++) {
@@ -112,7 +112,6 @@ public class SharedDocument implements MessageListener {
 			changes[n] = new Change(path, ChangeType.REMOVE, toRemove);
 			if(charBag.remove(toRemove) == -1) throw new IllegalStateException("Couldn't remove existing char");
 		}
-
 
 		for(Change c : changes) {
 			try {

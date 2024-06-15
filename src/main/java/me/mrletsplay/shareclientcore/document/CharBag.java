@@ -3,7 +3,19 @@ package me.mrletsplay.shareclientcore.document;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import me.mrletsplay.shareclientcore.debug.DebugValues;
+
 public interface CharBag {
+
+	/**
+	 * Debug keys
+	 * @see #getDebugValues()
+	 */
+	public static final String
+		DEBUG_INSERTIONS = "insertions",
+		DEBUG_INSERTIONS_DROPPED = "insertionsDropped",
+		DEBUG_DELETIONS = "deletions",
+		DEBUG_DELETIONS_DROPPED = "deletionsDropped";
 
 	/**
 	 * Adds a character to the bag and returns the index it was inserted at, or -1 if it was not inserted because it already exists
@@ -39,7 +51,7 @@ public interface CharBag {
 
 	/**
 	 * Collects the chars in this bag ordered by their position into a list
-	 * @return
+	 * @return The chars in this bag
 	 */
 	public List<Char> toList();
 
@@ -55,5 +67,14 @@ public interface CharBag {
 	 * @return A string containing the contents of this bag
 	 */
 	public String getContentsAsString();
+
+	/**
+	 * @return Debug information about this bag
+	 * @see #DEBUG_INSERTIONS
+	 * @see #DEBUG_INSERTIONS_DROPPED
+	 * @see #DEBUG_DELETIONS
+	 * @see #DEBUG_DELETIONS_DROPPED
+	 */
+	public DebugValues getDebugValues();
 
 }
