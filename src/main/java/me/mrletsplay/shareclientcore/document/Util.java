@@ -30,7 +30,6 @@ public class Util {
 			System.err.println("Got invalid positions");
 			System.err.println(Arrays.toString(before));
 			System.err.println(Arrays.toString(after));
-			Thread.dumpStack();
 			throw new IllegalArgumentException("before must be strictly less than after");
 		}
 

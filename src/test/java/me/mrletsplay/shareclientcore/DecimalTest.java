@@ -3,8 +3,6 @@ package me.mrletsplay.shareclientcore;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
 
 import me.mrletsplay.shareclientcore.document.Identifier;
@@ -121,7 +119,7 @@ public class DecimalTest {
 		Identifier[] a = { new Identifier(1, 0), new Identifier(2, 1) };
 		Identifier[] b = { new Identifier(1, 0), new Identifier(2, 2) };
 		Identifier[] newIdent = Util.generatePositionBetween(a, b, 3);
-		Identifier[] expected = { new Identifier(1, 0), new Identifier(2, 1), new Identifier(1, 3) };
+		Identifier[] expected = { new Identifier(1, 0), new Identifier(2, 1), new Identifier(0, 3), new Identifier(1, 3) };
 		assertArrayEquals(expected, newIdent);
 	}
 
@@ -145,8 +143,9 @@ public class DecimalTest {
 	public void testGeneratePositionEdgeCase1() {
 		Identifier[] a = { new Identifier(3, 0), new Identifier(1, 1) };
 		Identifier[] b = { new Identifier(3, 1) };
-		Identifier[] sus = Util.generatePositionBetween(a, b, 1);
-		System.out.println(Arrays.toString(sus));
+		Identifier[] newIdent = Util.generatePositionBetween(a, b, 1);
+		Identifier[] expected = { new Identifier(3, 0), new Identifier(1, 1), new Identifier(1, 1) };
+		assertArrayEquals(expected, newIdent);
 	}
 
 }

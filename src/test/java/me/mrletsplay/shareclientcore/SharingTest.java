@@ -53,12 +53,10 @@ public class SharingTest {
 
 	private void performRandomEdit(Random r, SharedDocument document) {
 		if(document.getContents().length == 0 || r.nextBoolean()) {
-//			System.out.println("INSERT");
 			char[] insert = new char[r.nextInt(16)];
 			for(int j = 0; j < insert.length; j++) insert[j] = CHARS.charAt(r.nextInt(CHARS.length()));
 			document.localInsert(r.nextInt(document.getContents().length + 1), String.valueOf(insert));
 		}else {
-//			System.out.println("DELETE");
 			int len = document.getContents().length;
 			int idx = r.nextInt(len);
 			int n = r.nextInt(Math.min(16, len - idx)) + 1;
@@ -83,9 +81,6 @@ public class SharingTest {
 		Random r = new Random(0);
 		for(int i = 0; i < 10_000; i++) {
 			performRandomEdit(r, r.nextBoolean() ? sharedA : sharedB);
-
-//			System.out.println("A: " + sharedA.getContentsAsString());
-//			System.out.println("B: " + sharedB.getContentsAsString());
 			assertEquals(sharedA.getContentsAsString(), sharedB.getContentsAsString());
 		}
 	}
@@ -109,22 +104,17 @@ public class SharingTest {
 
 		Random r = new Random(2);
 		for(int i = 0; i < 1000; i++) {
-//			System.out.println(i);
-
 			// Perform some random edits
 			for(int j = 0; j < 100; j++) {
 				boolean bEdit = r.nextBoolean();
-//				System.out.println(bEdit ? "B EDIT" : "A EDIT");
 				performRandomEdit(r, bEdit ? sharedA : sharedB);
 			}
 
 			// Randomly interleave messages
 			while(!messagesA.isEmpty() || !messagesB.isEmpty()) {
 				if(messagesB.isEmpty() || (!messagesA.isEmpty() && r.nextBoolean())) {
-//					System.out.println("A -> B: " + messagesA.get(0));
 					b.receive(messagesA.remove(0));
 				}else {
-//					System.out.println("B -> A: " + messagesB.get(0));
 					a.receive(messagesB.remove(0));
 				}
 			}
