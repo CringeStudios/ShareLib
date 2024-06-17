@@ -26,13 +26,19 @@ public class Util {
 	}
 
 	public static Identifier[] generatePositionBetween(Identifier[] before, Identifier[] after, int site) {
-		if(comparePositions(before, after) != -1) throw new IllegalArgumentException("before must be strictly less than after");
+		if(comparePositions(before, after) != -1) {
+			System.err.println("Got invalid positions");
+			System.err.println(Arrays.toString(before));
+			System.err.println(Arrays.toString(after));
+			Thread.dumpStack();
+			throw new IllegalArgumentException("before must be strictly less than after");
+		}
 
 		List<Identifier> newPosition = new ArrayList<>();
 
 		for(int i = 0; i < Math.max(before.length, after.length) + 1; i++) {
 			Identifier c1 = i >= before.length ? new Identifier(0, site) : before[i];
-			Identifier c2 = i >= after.length ? new Identifier(BASE - 1, site) : after[i];
+			Identifier c2 = i >= after.length ? new Identifier(BASE, site) : after[i];
 
 			// Modification to the original source because otherwise it can lead to cases where positions can't be generated and this seems to work
 			if(i >= before.length || c1.digit() != c2.digit()) {
@@ -48,8 +54,12 @@ public class Util {
 			if(c1.site() < c2.site()) {
 				// Anything starting with before will be sorted before after
 				newPosition.add(c1);
-				newPosition.add(new Identifier(1, site));
-				return newPosition.toArray(Identifier[]::new);
+
+				// Should be equivalent to recursively calling generatePosition with a truncated after (as in the reference implementation in the blog post)
+				Identifier[] newAfter = Arrays.copyOf(after, i + 2);
+				newAfter[i + 1] = new Identifier(BASE, site);
+				int[] incremented = getIncremented(before, newAfter, i + 1);
+				return constructPosition(incremented, before, newAfter, site);
 			}
 
 			System.err.println("Got invalid state");

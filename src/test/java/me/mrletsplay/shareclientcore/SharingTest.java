@@ -2,17 +2,22 @@ package me.mrletsplay.shareclientcore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
 import me.mrletsplay.shareclientcore.connection.DummyConnection;
+import me.mrletsplay.shareclientcore.connection.message.Message;
 import me.mrletsplay.shareclientcore.document.SharedDocument;
 
 public class SharingTest {
 
+	private static final String CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
+
 	@Test
-	public void testSharedDocument() {
+	public void testSharedDocumentSimple() {
 		DummyConnection a = new DummyConnection(0);
 		DummyConnection b = new DummyConnection(1);
 
@@ -46,8 +51,23 @@ public class SharingTest {
 		assertEquals("This is!", sharedB.getContentsAsString());
 	}
 
+	private void performRandomEdit(Random r, SharedDocument document) {
+		if(document.getContents().length == 0 || r.nextBoolean()) {
+//			System.out.println("INSERT");
+			char[] insert = new char[r.nextInt(16)];
+			for(int j = 0; j < insert.length; j++) insert[j] = CHARS.charAt(r.nextInt(CHARS.length()));
+			document.localInsert(r.nextInt(document.getContents().length + 1), String.valueOf(insert));
+		}else {
+//			System.out.println("DELETE");
+			int len = document.getContents().length;
+			int idx = r.nextInt(len);
+			int n = r.nextInt(Math.min(16, len - idx)) + 1;
+			document.localDelete(idx, n);
+		}
+	}
+
 	@Test
-	public void testSharedDocument2() {
+	public void testSharedDocumentRandom() {
 		DummyConnection a = new DummyConnection(0);
 		DummyConnection b = new DummyConnection(1);
 
@@ -60,42 +80,9 @@ public class SharingTest {
 		a.addListener(sharedA);
 		b.addListener(sharedB);
 
-		String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
-
 		Random r = new Random(0);
 		for(int i = 0; i < 10_000; i++) {
-			switch(r.nextInt(sharedA.getContents().length == 0 ? 2 : 4)) {
-				case 0: {
-					// Insert A
-					char[] insert = new char[r.nextInt(16)];
-					for(int j = 0; j < insert.length; j++) insert[j] = chars.charAt(r.nextInt(chars.length()));
-					sharedA.localInsert(r.nextInt(sharedA.getContents().length + 1), String.valueOf(insert));
-					break;
-				}
-				case 1: {
-					// Insert B
-					char[] insert = new char[r.nextInt(16)];
-					for(int j = 0; j < insert.length; j++) insert[j] = chars.charAt(r.nextInt(chars.length()));
-					sharedB.localInsert(r.nextInt(sharedB.getContents().length + 1), String.valueOf(insert));
-					break;
-				}
-				case 2: {
-					// Delete A
-					int len = sharedA.getContents().length;
-					int idx = r.nextInt(len);
-					int n = r.nextInt(Math.min(16, len - idx)) + 1;
-					sharedA.localDelete(idx, n);
-					break;
-				}
-				case 3: {
-					// Delete B
-					int len = sharedB.getContents().length;
-					int idx = r.nextInt(len);
-					int n = r.nextInt(Math.min(16, len - idx)) + 1;
-					sharedB.localDelete(idx, n);
-					break;
-				}
-			}
+			performRandomEdit(r, r.nextBoolean() ? sharedA : sharedB);
 
 //			System.out.println("A: " + sharedA.getContentsAsString());
 //			System.out.println("B: " + sharedB.getContentsAsString());
@@ -105,7 +92,80 @@ public class SharingTest {
 
 	@Test
 	public void testSharedDocumentInterleaving() {
-		// TODO: test random interleaving of messages
+		List<Message> messagesA = new ArrayList<>();
+		List<Message> messagesB = new ArrayList<>();
+
+		DummyConnection a = new DummyConnection(0);
+		DummyConnection b = new DummyConnection(1);
+
+		a.setSendMessageHandler(messagesA::add);
+		b.setSendMessageHandler(messagesB::add);
+
+		SharedDocument sharedA = new SharedDocument(a, "doc");
+		SharedDocument sharedB = new SharedDocument(b, "doc");
+
+		a.addListener(sharedA);
+		b.addListener(sharedB);
+
+		Random r = new Random(2);
+		for(int i = 0; i < 1000; i++) {
+//			System.out.println(i);
+
+			// Perform some random edits
+			for(int j = 0; j < 100; j++) {
+				boolean bEdit = r.nextBoolean();
+//				System.out.println(bEdit ? "B EDIT" : "A EDIT");
+				performRandomEdit(r, bEdit ? sharedA : sharedB);
+			}
+
+			// Randomly interleave messages
+			while(!messagesA.isEmpty() || !messagesB.isEmpty()) {
+				if(messagesB.isEmpty() || (!messagesA.isEmpty() && r.nextBoolean())) {
+//					System.out.println("A -> B: " + messagesA.get(0));
+					b.receive(messagesA.remove(0));
+				}else {
+//					System.out.println("B -> A: " + messagesB.get(0));
+					a.receive(messagesB.remove(0));
+				}
+			}
+
+			// At this point, both documents should be in sync again
+			assertEquals(sharedA.getContentsAsString(), sharedB.getContentsAsString());
+			assertEquals(sharedA.getCharBag().toList(), sharedB.getCharBag().toList());
+		}
+	}
+
+	@Test
+	public void testShareDocumentDeleteAndReinsert() {
+		List<Message> messagesA = new ArrayList<>();
+		List<Message> messagesB = new ArrayList<>();
+
+		DummyConnection a = new DummyConnection(0);
+		DummyConnection b = new DummyConnection(1);
+
+		a.setSendMessageHandler(messagesA::add);
+		b.setSendMessageHandler(messagesB::add);
+
+		SharedDocument sharedA = new SharedDocument(a, "doc");
+		SharedDocument sharedB = new SharedDocument(b, "doc");
+
+		a.addListener(sharedA);
+		b.addListener(sharedB);
+
+		sharedA.localInsert(0, "Test");
+		messagesA.forEach(b::receive);
+		messagesA.clear();
+		assertEquals("Test", sharedA.getContentsAsString());
+		assertEquals("Test", sharedB.getContentsAsString());
+
+		sharedA.localDelete(3, 1);
+		sharedA.localInsert(3, "t");
+		assertEquals("Test", sharedA.getContentsAsString());
+
+		messagesA.forEach(b::receive);
+		messagesA.clear();
+
+		assertEquals("Test", sharedA.getContentsAsString());
 	}
 
 }

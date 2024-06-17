@@ -53,6 +53,8 @@ public class SharedDocument implements MessageListener {
 
 		Change[] changes = new Change[bytes.length];
 		for(int i = 0; i < bytes.length; i++) {
+//			System.out.println(charBefore);
+//			System.out.println(charAfter);
 			Identifier[] newPos = Util.generatePositionBetween(charBefore.position(), charAfter.position(), site);
 			lamport++;
 			Char ch = new Char(newPos, lamport, bytes[i]);
@@ -60,6 +62,11 @@ public class SharedDocument implements MessageListener {
 			changes[i] = new Change(path, ChangeType.ADD, ch);
 			charBefore = ch;
 		}
+
+//		System.out.println("!! New changes:");
+//		for(Change c : changes) {
+//			System.out.println(c);
+//		}
 
 		return changes;
 	}
