@@ -27,15 +27,40 @@ public class ArrayCharBag implements CharBag {
 		this(Collections.emptyList());
 	}
 
+	/**
+	 * Finds the index of a character if it is contained within the bag, or the index it would be inserted at if it is not contained in the bag.
+	 * @param character The character to find
+	 * @return The index the character was found or would be inserted at
+	 */
+	private int indexOf(Char character) {
+		int lo = 0, hi = chars.size() - 1;
+
+		while(hi >= lo) {
+			int mid = (lo + hi) / 2;
+			Char c = get(mid);
+
+			int comp = Util.compareChars(c, character);
+			if(comp == 0) return mid;
+
+			if(comp < 0) {
+				lo = mid + 1;
+			}else {
+				hi = mid - 1;
+			}
+		}
+
+		return lo;
+	}
+
 	@Override
 	public int add(Char character) {
-		int i = 0;
-		// TODO: use binary search
-		while(i < chars.size() && Util.compareChars(chars.get(i), character) < 0) i++;
+		int i = indexOf(character);
+
 		if(i < chars.size() && Util.compareChars(chars.get(i), character) == 0) {
 			debugValues.increment(DEBUG_INSERTIONS_DROPPED);
 			return -1;
 		}
+
 		chars.add(i, character);
 		debugValues.increment(DEBUG_INSERTIONS);
 		return i;
@@ -43,13 +68,12 @@ public class ArrayCharBag implements CharBag {
 
 	@Override
 	public int remove(Char character) {
-		int i = 0;
-		// TODO: use binary search
-		while(i < chars.size() && Util.compareChars(chars.get(i), character) < 0) i++;
+		int i = indexOf(character);
 		if(i == chars.size() || Util.compareChars(chars.get(i), character) != 0) {
 			debugValues.increment(DEBUG_DELETIONS_DROPPED);
 			return -1;
 		}
+
 		chars.remove(i);
 		debugValues.increment(DEBUG_DELETIONS);
 		return i;
