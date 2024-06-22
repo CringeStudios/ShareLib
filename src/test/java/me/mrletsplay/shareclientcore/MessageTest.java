@@ -42,8 +42,12 @@ public class MessageTest {
 
 	@Test
 	public void testChangeMessage() throws IOException {
-		Change change = new Change("Project:src/test.txt", ChangeType.ADD, new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3)}, 42, (byte) 'e'));
-		ChangeMessage m = new ChangeMessage(change);
+		Change[] changes = {
+				new Change(ChangeType.ADD, new Char(new Identifier[] {new Identifier(0, 1), new Identifier(1, 3)}, 42, (byte) 'e')),
+				new Change(ChangeType.REMOVE, new Char(new Identifier[] {new Identifier(2, 1), new Identifier(1, 4)}, 314, (byte) 'q')),
+
+		};
+		ChangeMessage m = new ChangeMessage("Project:src/test.txt", changes);
 		assertEquals(deserialize(serialize(m)), m, "Deserialized message must equal message");
 	}
 

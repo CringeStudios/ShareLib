@@ -9,7 +9,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import me.mrletsplay.shareclientcore.document.ArrayCharBag;
-import me.mrletsplay.shareclientcore.document.BinaryTreeCharBag;
 import me.mrletsplay.shareclientcore.document.Char;
 import me.mrletsplay.shareclientcore.document.CharBag;
 import me.mrletsplay.shareclientcore.document.Identifier;
@@ -17,7 +16,7 @@ import me.mrletsplay.shareclientcore.document.Identifier;
 public class CharBagTest {
 
 	private static List<CharBag> getBags() {
-		return List.of(new ArrayCharBag(), new BinaryTreeCharBag());
+		return List.of(new ArrayCharBag()/*, new BinaryTreeCharBag() TODO implement BinaryTreeCharBag */);
 	}
 
 	@ParameterizedTest

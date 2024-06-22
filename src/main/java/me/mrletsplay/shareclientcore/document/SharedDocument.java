@@ -57,7 +57,7 @@ public class SharedDocument implements MessageListener {
 			lamport++;
 			Char ch = new Char(newPos, lamport, bytes[i]);
 			if(charBag.add(ch) == -1) throw new IllegalStateException("Couldn't insert newly created char");
-			changes[i] = new Change(path, ChangeType.ADD, ch);
+			changes[i] = new Change(ChangeType.ADD, ch);
 			charBefore = ch;
 		}
 
@@ -87,12 +87,10 @@ public class SharedDocument implements MessageListener {
 	public void localInsert(int index, String str) {
 		Change[] changes = insert(index, str, site);
 
-		for(Change c : changes) {
-			try {
-				connection.send(new ChangeMessage(c));
-			} catch (ConnectionException e) {
-				e.printStackTrace(); // TODO: throw error
-			}
+		try {
+			connection.send(new ChangeMessage(path, changes));
+		} catch (ConnectionException e) {
+			e.printStackTrace(); // TODO: throw error
 		}
 	}
 
@@ -109,16 +107,14 @@ public class SharedDocument implements MessageListener {
 		while(n-- > 0) {
 			// TODO: more efficient implementation (e.g. range delete in CharBag)
 			Char toRemove = charBag.get(index + 1);
-			changes[n] = new Change(path, ChangeType.REMOVE, toRemove);
+			changes[n] = new Change(ChangeType.REMOVE, toRemove);
 			if(charBag.remove(toRemove) == -1) throw new IllegalStateException("Couldn't remove existing char");
 		}
 
-		for(Change c : changes) {
-			try {
-				connection.send(new ChangeMessage(c));
-			} catch (ConnectionException e) {
-				e.printStackTrace(); // TODO: throw error
-			}
+		try {
+			connection.send(new ChangeMessage(path, changes));
+		} catch (ConnectionException e) {
+			e.printStackTrace(); // TODO: throw error
 		}
 	}
 
@@ -191,12 +187,13 @@ public class SharedDocument implements MessageListener {
 	@Override
 	public void onMessage(Message message) {
 		if(message instanceof ChangeMessage change) {
-			Change c = change.change();
-			if(!c.documentPath().equals(path)) return;
+			if(!change.documentPath().equals(path)) return;
 
-			switch(c.type()) {
-				case ADD -> remoteInsert(c.character());
-				case REMOVE -> remoteDelete(c.character());
+			for(Change c : change.changes()) {
+				switch(c.type()) {
+					case ADD -> remoteInsert(c.character());
+					case REMOVE -> remoteDelete(c.character());
+				}
 			}
 		}
 	}
